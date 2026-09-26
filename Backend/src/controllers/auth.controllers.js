@@ -103,8 +103,7 @@ async function loginUserController(req, res) {
 
 /**
  * @name logoutUserController
- * @description logout user, adds token in blacklist
- *
+ * @description logout user, adds token in blacklist, expects token
  */
 async function logoutUserController(req, res) {
   const token = req.cookies.token;

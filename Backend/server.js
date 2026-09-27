@@ -5,6 +5,7 @@ require("dotenv").config();
 require("./src/config/database");
 
 DB_Connect();
+
 const PORT = 3000;
 
 app.listen(PORT, () => {

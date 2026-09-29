@@ -38,7 +38,7 @@ const interviewReportSchema = z.object({
       "A list of technical questions that can be asked by the interviewer, along with the intention behind asking that question and how to answer it.",
     ),
 
-  BehavioralQuestions: z
+  behavioralQuestions: z
     .array(
       z.object({
         question: z
@@ -63,7 +63,7 @@ const interviewReportSchema = z.object({
       "A list of behavioral questions that can be asked by interviewer, along with the intention behind asking that question and how to answer it.",
     ),
 
-  Skillgaps: z
+  skillGaps: z
     .array(
       z.object({
         skill: z.string().describe("The skill that the candidate is lacking"),

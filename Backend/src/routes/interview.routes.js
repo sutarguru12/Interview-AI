@@ -4,6 +4,8 @@ const interviewRouter = express.Router();
 const {
   interviewReportGeneratorController,
 } = require("../controllers/interview.controller");
+const upload = require("../middlewares/file.middleware");
+
 /**
  * @route api/interview/
  * @description generate a new interview report according to user description, resume and job description
@@ -12,6 +14,7 @@ const {
 interviewRouter.post(
   "/",
   authMiddleware.authGetme,
+  upload.single("resume"),
   interviewReportGeneratorController,
 );
 

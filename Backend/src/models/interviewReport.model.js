@@ -1,4 +1,4 @@
-const mongoose = require(mongoose);
+const mongoose = require("mongoose");
 
 /**
  *
@@ -76,7 +76,7 @@ const skillGapSchema = new mongoose.Schema(
     },
     severity: {
       type: String,
-      enum: ["low", "medium", "high"],
+      enum: ["Low", "Medium", "High"],
       required: true,
     },
   },
@@ -118,13 +118,18 @@ const interviewReportSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
-    TechnicalQuestions: [technicalQuestionSchema],
+    technicalQuestions: [technicalQuestionSchema],
     behavioralQuestions: [behavioralQuestionSchema],
     skillGaps: [skillGapSchema],
     preparationPlan: [preparationPlanSchema],
+
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "users",
+    },
   },
   {
-    timeStamps: true,
+    timestamps: true,
   },
 );
 const interviewReportModel = mongoose.model(

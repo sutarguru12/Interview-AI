@@ -1,6 +1,7 @@
 const { GoogleGenAI, Behavior } = require("@google/genai");
 require("dotenv").config();
 const { z } = require("zod");
+const puppeteer = require("puppeteer")
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENAI_API_KEY,
@@ -128,4 +129,51 @@ async function generateInterviewReport({
   return report;
 }
 
-module.exports = generateInterviewReport;
+async function generatePdfFromHtml(htmlContent) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  await page.setContent(htmlContent, { waitUntil: "networkidel0"})
+
+  const pdfBuffer = await page.pdf({ format: "A4"});
+
+  await browser.close();
+
+  return pdfBuffer;
+
+}
+
+async function generateResumePdf({ resume, selfDescription, jobDescription }) {
+  const resumePdfSchema = z.object({
+    html: z.string().describe("The HTML content of the resume PDF which can be converted to PDF with libraries like puppeteer"),
+  });
+
+  const prompt = `You are an expert resume writer. You have to generate a resume in HTML format based on the resume, job description and self description provided. The resume should be in a professional format and should be ATS friendly. The resume should contain the following:
+1. A professional summary that highlights the candidate's skills and experience.
+2. A list of technical skills that the candidate possesses.
+3. A list of work experience that the candidate has, along with the job title, company name, and duration of employment.
+4. A list of educational qualifications that the candidate has, along with the degree, university name, and year of graduation.
+5. A list of certifications that the candidate has, along with the certification name and year of completion.
+6. A list of projects that the candidate has worked on, along with the project name, description, and technologies used.
+
+  resume: ${resume},
+  selfDescription: ${selfDescription},
+  jobDescription: ${jobDescription}`
+
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash",
+    contents: prompt,
+    config: {
+      responseMimeType: "application/Json",
+      responseSchema: zodToJsonSchma(resumePdfSchema)
+    }
+  })
+
+  const JsonContent = JSON.parse(response.text);
+
+  const pdfBuffer = await generatePdfFromHtml(JsonContent.html);
+
+
+  return pdfBuffer;
+}
+module.exports = {generateInterviewReport, generateResumePdf};

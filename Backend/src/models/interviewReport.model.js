@@ -92,7 +92,7 @@ const preparationPlanSchema = new mongoose.Schema({
     type: String,
     required: [true, "focus required"],
   },
-  task: [
+  tasks: [
     {
       type: String,
       required: [true, "task required"],
@@ -108,7 +108,7 @@ const interviewReportSchema = new mongoose.Schema(
     },
     resume: {
       type: String,
-      required: true,
+      default: "",
     },
     selfDescription: {
       type: String,

@@ -1,7 +1,35 @@
-import React from "react";
+import { React, useState, useRef } from "react";
 import "../style/home.scss";
+import { useInterview } from "../hooks/useInterview";
+import { useNavigate } from "react-router";
 
 const Home = () => {
+  const { generateReport, loading, reports } = useInterview();
+  const [jobDescription, setJobDescription] = useState("");
+  const [selfDescription, setSelfDescription] = useState("");
+  const resumeInputRef = useRef(null);
+  const navigate = useNavigate();
+
+  const handleGenerateReport = async () => {
+    if (!jobDescription.trim()) {
+      alert("Please provide a job description.");
+      return;
+    }
+
+    if (!selfDescription.trim() && !resumeInputRef.current?.files[0]) {
+      alert("Please provide either a self-description or upload a resume.");
+      return;
+    }
+
+    const resumeFile = resumeInputRef.current?.files[0];
+    const data = await generateReport({
+      jobDescription,
+      selfDescription,
+      resume: resumeFile,
+    });
+    navigate(`/interview/${data._id}`);
+  };
+
   return (
     <main className="home">
       <div className="home__content">
@@ -28,6 +56,7 @@ const Home = () => {
             </div>
             <div className="job-description-wrap">
               <textarea
+                onChange={(e) => setJobDescription(e.target.value)}
                 name="jobDescription"
                 id="jobDescription"
                 maxLength={5000}
@@ -68,6 +97,7 @@ const Home = () => {
                 <span>PDF or DOCX (Max 5MB)</span>
               </label>
               <input
+                ref={resumeInputRef}
                 type="file"
                 name="resume"
                 id="resume"
@@ -82,6 +112,7 @@ const Home = () => {
             <div className="self-description-field">
               <label htmlFor="selfDescription">Quick Self-Description</label>
               <textarea
+                onChange={(e) => setSelfDescription(e.target.value)}
                 name="selfDescription"
                 id="selfDescription"
                 placeholder="Briefly describe your experience, key skills, and years of experience if you don't have a resume handy..."
@@ -105,11 +136,63 @@ const Home = () => {
               AI-Powered Strategy Generation <span aria-hidden="true">·</span>{" "}
               Approx 30s
             </span>
-            <button className="generate-btn" type="button">
+            <button
+              onClick={handleGenerateReport}
+              className="generate-btn"
+              type="button"
+            >
               <span aria-hidden="true">★</span> Generate My Interview Strategy
             </button>
           </footer>
         </form>
+
+        <section
+          className="recent-reports"
+          aria-labelledby="recent-reports-title"
+        >
+          <div className="recent-reports__header">
+            <div>
+              <p className="recent-reports__eyebrow">Your workspace</p>
+              <h2 id="recent-reports-title">Recent reports</h2>
+            </div>
+            <span className="recent-reports__count">
+              {reports?.length ?? 0}
+            </span>
+          </div>
+          {loading && !reports?.length ? (
+            <p className="recent-reports__message" role="status">
+              Loading your reports...
+            </p>
+          ) : reports?.length ? (
+            <div className="recent-report-list">
+              {reports.map((report) => (
+                <button
+                  className="recent-report"
+                  key={report._id}
+                  type="button"
+                  onClick={() => navigate(`/interview/${report._id}`)}
+                >
+                  <span className="recent-report__main">
+                    <strong>{report.title || "Interview plan"}</strong>
+                    <span>
+                      {report.createdAt
+                        ? new Date(report.createdAt).toLocaleDateString()
+                        : "Date unavailable"}
+                    </span>
+                  </span>
+                  <span className="recent-report__meta">
+                    {report.matchScore != null && `${report.matchScore}% match`}
+                    <span aria-hidden="true">→</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="recent-reports__message">
+              Your generated interview plans will appear here.
+            </p>
+          )}
+        </section>
       </div>
     </main>
   );

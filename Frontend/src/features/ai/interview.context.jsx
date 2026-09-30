@@ -1,6 +1,8 @@
-import { Children, React, useState } from "react";
+import { createContext, useState } from "react";
 
-const InterviewContext = ({ children }) => {
+export const InterviewContext = createContext();
+
+export const InterviewProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState(null);
   const [reports, setReports] = useState([]);
@@ -12,5 +14,3 @@ const InterviewContext = ({ children }) => {
     </InterviewContext.Provider>
   );
 };
-
-export default InterviewContext;

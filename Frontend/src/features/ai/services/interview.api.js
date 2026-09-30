@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const api = axios.create({
   baseURL: "http://localhost:3000/api/interview",
   withCredentials: true,
@@ -9,19 +11,15 @@ const api = axios.create({
 export const generateInterviewReport = async ({
   jobDescription,
   selfDescription,
-  resumeFile,
+  resume,
 }) => {
   const formData = new FormData();
   formData.append("jobDescription", jobDescription);
   formData.append("selfDescription", selfDescription);
-  formData.append("resume", resumeFile);
+  if (resume) formData.append("resume", resume);
 
-  const response = await api.post("/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  return response;
+  const response = await api.post("/", formData);
+  return response.data;
 };
 
 /**
@@ -30,7 +28,7 @@ export const generateInterviewReport = async ({
  */
 export const getInterviewReport = async (interviewReportId) => {
   const response = await api.get(`/report/${interviewReportId}`);
-  return response;
+  return response.data;
 };
 
 /**
@@ -38,5 +36,5 @@ export const getInterviewReport = async (interviewReportId) => {
  */
 export const getAllInterviewReports = async () => {
   const response = await api.get("/reports");
-  return response;
+  return response.data;
 };

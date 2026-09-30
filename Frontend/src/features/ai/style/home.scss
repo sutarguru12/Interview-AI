@@ -79,6 +79,124 @@
   }
 }
 
+.recent-reports {
+  margin-top: 28px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+  }
+
+  &__eyebrow {
+    margin: 0 0 4px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  &__count {
+    display: grid;
+    min-width: 28px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  &__message {
+    margin: 0;
+    padding: 18px;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+  }
+}
+
+.recent-report-list {
+  display: grid;
+  gap: 8px;
+}
+
+.recent-report {
+  display: flex;
+  width: 100%;
+  min-height: 66px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--panel);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: var(--pink);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--pink);
+    outline-offset: 2px;
+  }
+
+  &__main,
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__main {
+    min-width: 0;
+    align-items: flex-start;
+    flex-direction: column;
+
+    strong {
+      overflow: hidden;
+      max-width: 100%;
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    > span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+  }
+
+  &__meta {
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-size: 11px;
+
+    > span {
+      color: var(--pink);
+      font-size: 18px;
+    }
+  }
+}
+
 .field-heading,
 .resume-field__heading {
   display: flex;

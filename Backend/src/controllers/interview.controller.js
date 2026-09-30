@@ -1,4 +1,4 @@
-const pdfParse = require("pdf-parse");
+const { PDFParse } = require("pdf-parse");
 const generateInterviewReport = require("../services/ai.service");
 const interviewReportModel = require("../models/interviewReport.model");
 
@@ -9,20 +9,37 @@ const interviewReportModel = require("../models/interviewReport.model");
  * @access private
  */
 async function interviewReportGeneratorController(req, res) {
-  const resumeContent = await new pdfParse.PDFParse(
-    Uint8Array.from(req.file.buffer),
-  ).getText();
   const { selfDescription, jobDescription } = req.body;
 
+  let resumeText = "";
+
+  if (req.file) {
+    const parser = new PDFParse({ data: req.file.buffer });
+    try {
+      const result = await parser.getText();
+      resumeText = result.text;
+    } catch (err) {
+      return res.status(400).json({ message: "Could not read the PDF file" });
+    } finally {
+      await parser.destroy();
+    }
+  }
+
+  if (!resumeText && !selfDescription?.trim()) {
+    return res
+      .status(400)
+      .json({ message: "Provide a resume or a self-description" });
+  }
+
   const interviewReportByAi = await generateInterviewReport({
-    resume: resumeContent.text,
+    resume: resumeText,
     selfDescription,
     jobDescription,
   });
 
   const interviewReport = await interviewReportModel.create({
     user: req.user.id,
-    resume: resumeContent.text,
+    resume: resumeText,
     selfDescription,
     jobDescription,
     ...interviewReportByAi,

@@ -24,3 +24,32 @@ body,
     "Helvetica Neue",
     sans-serif;
 }
+
+.protected-shell {
+  position: relative;
+}
+
+.logout-button {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1000;
+  padding: 10px 16px;
+  border: 1px solid #c5b3b3;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #111111;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(17, 17, 17, 0.08);
+}
+
+.logout-button:hover {
+  filter: brightness(0.98);
+}
+
+.logout-button:focus-visible {
+  outline: 2px solid #111111;
+  outline-offset: 2px;
+}

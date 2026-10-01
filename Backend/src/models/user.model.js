@@ -15,6 +15,16 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  githubId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
 });
 
 const userModel = mongoose.model("users", userSchema);

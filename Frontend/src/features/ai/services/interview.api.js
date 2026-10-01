@@ -38,3 +38,15 @@ export const getAllInterviewReports = async () => {
   const response = await api.get("/reports");
   return response.data;
 };
+
+/**
+ *
+ * @description this function is used to generate resume pdf on the basis of resume, jobDescription, selfDesctiption
+ *
+ */
+export const generateResumePdf = async (interviewReportId) => {
+  const response = await api.post(`/resume/pdf/${interviewReportId}`, null, {
+    responseType: "blob",
+  });
+  return response.data;
+};

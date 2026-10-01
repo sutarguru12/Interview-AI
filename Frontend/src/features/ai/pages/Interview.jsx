@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "../style/interview.scss";
 import { useInterview } from "../hooks/useInterview";
+import { useParams } from "react-router";
 
 const sections = [
   { id: "technical", label: "Technical Questions", icon: "<>" },
@@ -11,7 +12,8 @@ const sections = [
 const Interview = () => {
   const [activeSection, setActiveSection] = useState("behavioral");
   const [openQuestion, setOpenQuestion] = useState(0);
-  const { report, loading } = useInterview();
+  const { report, loading, generateResumePdfById } = useInterview();
+  const [isGeneratingResume, setIsGeneratingResume] = useState(false);
 
   if (!report) {
     return (
@@ -55,6 +57,17 @@ const Interview = () => {
               </button>
             ))}
           </nav>
+          <button
+            onClick={async () => {
+              setIsGeneratingResume(true);
+              await generateResumePdfById({ interviewReportId: report._id });
+              setIsGeneratingResume(false);
+            }}
+            className="btn generate-btn"
+            disabled={isGeneratingResume}
+          >
+            Generate Resume
+          </button>
         </aside>
 
         <section className="interview-content">

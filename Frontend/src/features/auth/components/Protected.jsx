@@ -1,9 +1,15 @@
 import React from "react";
 import { useAuth } from "../hooks/useAuth";
-import { Navigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 
 const Protected = ({ children }) => {
-  const { loading, user } = useAuth();
+  const { loading, user, handleLogout } = useAuth();
+  const navigate = useNavigate();
+
+  const onLogout = async () => {
+    await handleLogout();
+    navigate("/login");
+  };
 
   if (loading) {
     return (
@@ -16,7 +22,15 @@ const Protected = ({ children }) => {
   if (!user) {
     return <Navigate to={"/login"} />;
   }
-  return children;
+
+  return (
+    <div className="protected-shell">
+      <button type="button" className="logout-button" onClick={onLogout}>
+        Logout
+      </button>
+      {children}
+    </div>
+  );
 };
 
 export default Protected;

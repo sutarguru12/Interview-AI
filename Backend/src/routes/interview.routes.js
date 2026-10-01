@@ -5,6 +5,7 @@ const {
   interviewReportGeneratorController,
   interviewReportController,
   getAllInterviewReportsController,
+  generateResumePdfController,
 } = require("../controllers/interview.controller");
 const upload = require("../middlewares/file.middleware");
 
@@ -40,6 +41,17 @@ interviewRouter.get(
   "/reports",
   authMiddleware.authGetme,
   getAllInterviewReportsController,
+);
+
+/**
+ * @route GET api/interview/resume/pdf
+ * @description Generate resume pdf on the basis of resume, jobDescription, selfDesctiption
+ * @access public
+ */
+interviewRouter.post(
+  "/resume/pdf/:interviewReportId",
+  authMiddleware.authGetme,
+  generateResumePdfController,
 );
 
 module.exports = interviewRouter;

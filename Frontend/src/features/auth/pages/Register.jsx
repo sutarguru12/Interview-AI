@@ -6,16 +6,27 @@ import { useAuth } from "../hooks/useAuth";
 const Register = () => {
   const navigate = useNavigate();
 
+  const [error, setError] = useState("");
+
   const { loading, handleRegister } = useAuth();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    handleRegister({ username, email, password });
-    navigate("/");
+    try {
+      setError("");
+
+      await handleRegister({ username, email, password });
+
+      navigate("/");
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "An error occurred during registration.",
+      );
+    }
   };
 
   if (loading) {
@@ -69,6 +80,9 @@ const Register = () => {
               placeholder="Enter password"
             />
           </div>
+
+          {error && <p className="error-message">{error}</p>}
+
           <button className="button primary-button">Register</button>
         </form>
 

@@ -10,7 +10,22 @@ const Home = () => {
   const resumeInputRef = useRef(null);
   const navigate = useNavigate();
 
+  if (loading) {
+    return (
+      <main className="home">
+        <div className="home__content">
+          <h1>Loading...</h1>
+        </div>
+      </main>
+    );
+  }
+
   const handleGenerateReport = async () => {
+    if (loading) {
+      return alert(
+        "Please wait, your previous request is still being processed.",
+      );
+    }
     if (!jobDescription.trim()) {
       alert("Please provide a job description.");
       return;

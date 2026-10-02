@@ -1,6 +1,12 @@
-import { useContext } from "react";
+import { useContext, useCallback } from "react";
 import { AuthContext } from "../auth.context";
-import { login, register, logout, get_me } from "../services/auth.api";
+import {
+  login,
+  register,
+  logout,
+  get_me,
+  googleLogin,
+} from "../services/auth.api";
 import { useEffect } from "react";
 
 export const useAuth = () => {
@@ -19,6 +25,26 @@ export const useAuth = () => {
       setLoading(false);
     }
   };
+
+  const handleGoogleLogin = useCallback(
+    async (credential) => {
+      try {
+        setLoading(true);
+
+        const data = await googleLogin(credential);
+
+        setUser(data.user);
+
+        return data;
+      } catch (err) {
+        console.log(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [setLoading, setUser],
+  );
 
   const handleRegister = async ({ username, email, password }) => {
     try {
@@ -45,5 +71,12 @@ export const useAuth = () => {
     }
   };
 
-  return { user, loading, handleLogin, handleRegister, handleLogout };
+  return {
+    user,
+    loading,
+    handleLogin,
+    handleGoogleLogin,
+    handleRegister,
+    handleLogout,
+  };
 };

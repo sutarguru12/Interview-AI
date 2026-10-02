@@ -2,7 +2,9 @@ const userModel = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const tokenBlacklistModel = require("../models/blacklist.model");
+const { OAuth2Client } = require("google-auth-library");
 
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 /**
  * @name registerUserController
  * @description registers a new user, expects name, email and a password
@@ -102,6 +104,78 @@ async function loginUserController(req, res) {
 }
 
 /**
+ * @description Login using Google
+ * @access public
+ */
+async function googleLoginControler(req, res) {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({ mesage: "Google Credentials required" });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    const { sub: googleId, email, name, picture } = payload;
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ message: "Google account email not available" });
+    }
+
+    let user =
+      (await userModel.findOne({ googleId })) ||
+      (await userModel.findOne({ email }));
+
+    if (user) {
+      user.googleId = googleId;
+      user.avatar = picture;
+
+      await user.save();
+    } else {
+      let username = name || email.split("@")[0];
+      if (await userModel.findOne({ username })) {
+        username = `${username}${Date.now()}`;
+      }
+      user = await userModel.create({
+        username,
+        email,
+        googleId,
+        avatar: picture,
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        name: user.username,
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" },
+    );
+
+    res.cookie("token", token);
+
+    return res.status(200).json({
+      message: "Google login successful",
+      user: { id: user._id, name: user.username, email: user.email },
+    });
+  } catch (error) {
+    console.error("Google login error: ", error);
+
+    return res.status(401).json({ message: "Google authentication failed" });
+  }
+}
+
+/**
  * @name logoutUserController
  * @description logout user, adds token in blacklist, expects token
  */
@@ -138,4 +212,5 @@ module.exports = {
   loginUserController,
   logoutUserController,
   authGetMeController,
+  googleLoginControler,
 };

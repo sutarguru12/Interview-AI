@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
@@ -46,9 +46,23 @@ export async function login({ email, password }) {
   }
 }
 
+export const googleLogin = async (credential) => {
+  const response = await api.post(
+    `/api/auth/google`,
+    {
+      credential,
+    },
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+};
+
 export async function logout({ token }) {
   try {
-    const response = await api.get("/api/auth/logout", { token });
+    const response = await api.post("/api/auth/logout", { token });
 
     return response.data;
   } catch (err) {

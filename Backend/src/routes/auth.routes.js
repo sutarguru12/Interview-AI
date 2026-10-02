@@ -19,6 +19,13 @@ authRouter.post("/register", authController.registerUserController);
 authRouter.post("/login", authController.loginUserController);
 
 /**
+ * @route POST /api/auth/google-login
+ * @description login using google
+ * @access public
+ */
+authRouter.post("/google", authController.googleLoginControler);
+
+/**
  * @name /api/auth/logout
  * @description removes token from cookie and adds it to blacklist model
  * @access public
@@ -35,4 +42,5 @@ authRouter.get(
   authMiddleware.authGetme,
   authController.authGetMeController,
 );
+
 module.exports = authRouter;

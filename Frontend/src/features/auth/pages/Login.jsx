@@ -2,15 +2,86 @@ import React from "react";
 import "../auth.form.scss";
 import { useNavigate, Link } from "react-router";
 import { useAuth } from "../hooks/useAuth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Login = () => {
-  const { loading, handleLogin } = useAuth();
+  const { loading, handleLogin, handleGoogleLogin } = useAuth();
   const [error, setError] = useState("");
 
   const Navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState("");
+
+  useEffect(() => {
+    if (loading) return;
+
+    let interval;
+
+    const initializeGoogleLogin = () => {
+      if (!window.google) {
+        console.log("Google identity services not loaded yet..");
+        return false;
+      }
+
+      const googleButton = document.getElementById("googleButton");
+
+      if (!googleButton) {
+        return false;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+
+        callback: async (response) => {
+          try {
+            setGoogleLoading(true);
+            setGoogleError("");
+
+            const data = await handleGoogleLogin(response.credential);
+
+            console.log("Google login successful", data.user);
+
+            Navigate("/");
+          } catch (error) {
+            console.log("Google login failed: ", error);
+
+            setGoogleError(
+              error.response?.data?.message || "Google login failed",
+            );
+          } finally {
+            setGoogleLoading(false);
+          }
+        },
+      });
+
+      googleButton.innerHTML = "";
+
+      window.google.accounts.id.renderButton(googleButton, {
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "rectangular",
+        width: 350,
+      });
+      return true;
+    };
+    if (window.google) {
+      initializeGoogleLogin();
+      return;
+    }
+    interval = setInterval(() => {
+      if (window.google) {
+        clearInterval(interval);
+        initializeGoogleLogin();
+      }
+    }, 100);
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [Navigate, handleGoogleLogin, loading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,6 +143,15 @@ const Login = () => {
           </div>
           {error && <p className="error-message">{error}</p>}
           <button className="button primary-button">Login</button>
+
+          <div className="google-login">
+            <p>OR</p>
+
+            {googleLoading && <p>Sign in with google.</p>}
+            <div id="googleButton"></div>
+
+            {googleError && <p className="error-message">{googleError}</p>}
+          </div>
         </form>
 
         <p>

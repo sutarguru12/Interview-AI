@@ -23,9 +23,17 @@ const Register = () => {
 
       navigate("/");
     } catch (err) {
-      setError(
-        err.response?.data?.message || "An error occurred during registration.",
-      );
+      if (err.response?.status === 429) {
+        setError(
+          err.response?.data?.message ||
+            "Too many attempts, Please try again later",
+        );
+      } else {
+        setError(
+          err.response?.data?.message ||
+            "An error occurred during registration.",
+        );
+      }
     }
   };
 

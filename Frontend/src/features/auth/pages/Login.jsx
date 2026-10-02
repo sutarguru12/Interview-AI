@@ -6,15 +6,31 @@ import { useState } from "react";
 
 const Login = () => {
   const { loading, handleLogin } = useAuth();
+  const [error, setError] = useState("");
 
   const Navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    handleLogin({ email, password });
-    Navigate("/");
+
+    setError("");
+    try {
+      await handleLogin({ email, password });
+      Navigate("/");
+    } catch (error) {
+      if (error.response?.status === 429) {
+        setError(
+          error.response?.data?.message ||
+            "Too many requests, Please try again later.",
+        );
+      } else {
+        setError(
+          error.response?.data?.message || "Wrong credentials, Please re-enter",
+        );
+      }
+    }
   };
 
   if (loading) {
@@ -54,6 +70,7 @@ const Login = () => {
               placeholder="Enter password"
             />
           </div>
+          {error && <p className="error-message">{error}</p>}
           <button className="button primary-button">Login</button>
         </form>
 

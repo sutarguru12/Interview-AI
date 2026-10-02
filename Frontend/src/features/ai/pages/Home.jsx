@@ -9,6 +9,7 @@ const Home = () => {
   const [selfDescription, setSelfDescription] = useState("");
   const resumeInputRef = useRef(null);
   const navigate = useNavigate();
+  const [error, setError] = useState("");
 
   if (loading) {
     return (
@@ -21,11 +22,8 @@ const Home = () => {
   }
 
   const handleGenerateReport = async () => {
-    if (loading) {
-      return alert(
-        "Please wait, your previous request is still being processed.",
-      );
-    }
+    setError("");
+
     if (!jobDescription.trim()) {
       alert("Please provide a job description.");
       return;
@@ -36,13 +34,27 @@ const Home = () => {
       return;
     }
 
-    const resumeFile = resumeInputRef.current?.files[0];
-    const data = await generateReport({
-      jobDescription,
-      selfDescription,
-      resume: resumeFile,
-    });
-    navigate(`/interview/${data._id}`);
+    try {
+      const resumeFile = resumeInputRef.current?.files[0];
+      const data = await generateReport({
+        jobDescription,
+        selfDescription,
+        resume: resumeFile,
+      });
+      navigate(`/interview/${data._id}`);
+    } catch (err) {
+      if (err.response?.status === 429) {
+        setError(
+          err.response?.data?.message ||
+            "Too many request, Please try again later",
+        );
+      } else {
+        setError(
+          err.response?.data?.message ||
+            "Something went wrong, Please Try again later",
+        );
+      }
+    }
   };
 
   return (
@@ -161,6 +173,7 @@ const Home = () => {
           </footer>
         </form>
 
+        {error && <p className="error-message">{error}</p>}
         <section
           className="recent-reports"
           aria-labelledby="recent-reports-title"

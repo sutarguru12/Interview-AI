@@ -5,6 +5,21 @@ const api = axios.create({
   withCredentials: true,
 });
 
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+
+  (error) => {
+    if (error.response?.status == 429) {
+      console.log(
+        error.response?.message || "Too many requests, Please try again later",
+      );
+    }
+    return Promise.reject(error);
+  },
+);
+
 export async function register({ username, email, password }) {
   try {
     const response = await api.post("/api/auth/register", {
@@ -27,6 +42,7 @@ export async function login({ email, password }) {
     return response.data;
   } catch (err) {
     console.log(err);
+    throw err;
   }
 }
 

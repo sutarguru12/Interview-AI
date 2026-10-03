@@ -2,7 +2,8 @@ const { GoogleGenAI, Behavior } = require("@google/genai");
 require("dotenv").config();
 const { z } = require("zod");
 const puppeteer = require("puppeteer-core");
-const chromium = require("@sparticuz/chromium");
+const chromiumModule = require("@sparticuz/chromium");
+const chromium = chromiumModule.default || chromiumModule;
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENAI_API_KEY,

@@ -1,7 +1,8 @@
 const { GoogleGenAI, Behavior } = require("@google/genai");
 require("dotenv").config();
 const { z } = require("zod");
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENAI_API_KEY,
@@ -130,23 +131,36 @@ async function generateInterviewReport({
 }
 
 async function generatePdfFromHtml(htmlContent) {
-  const browser = await puppeteer.launch({
-    executablePath:
-      "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-    headless: true,
-  });
-  const page = await browser.newPage();
+  const isProd = process.env.NODE_ENV === "production";
 
-  await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+  const browser = await puppeteer.launch(
+    isProd
+      ? {
+          args: chromium.args,
+          executablePath: await chromium.executablePath(),
+          headless: "shell",
+        }
+      : {
+          executablePath:
+            "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+          headless: true,
+        },
+  );
 
-  const pdfBuffer = await page.pdf({
-    format: "A4",
-    margin: { top: "20mm", bottom: "20mm", left: "15mm", right: "15mm" },
-  });
+  try {
+    const page = await browser.newPage();
 
-  await browser.close();
+    await page.setContent(htmlContent, { waitUntil: "load" });
 
-  return pdfBuffer;
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      margin: { top: "20mm", bottom: "20mm", left: "15mm", right: "15mm" },
+    });
+
+    return Buffer.from(pdfBuffer);
+  } finally {
+    await browser.close();
+  }
 }
 
 async function generateResumePdf({ resume, selfDescription, jobDescription }) {

@@ -34,7 +34,7 @@ const interviewReportSchema = z.object({
           ),
       }),
     )
-    .min(5)
+    .min(10)
     .describe(
       "A list of technical questions that can be asked by the interviewer, along with the intention behind asking that question and how to answer it.",
     ),
@@ -59,7 +59,7 @@ const interviewReportSchema = z.object({
           ),
       }),
     )
-    .min(5)
+    .min(10)
     .describe(
       "A list of behavioral questions that can be asked by interviewer, along with the intention behind asking that question and how to answer it.",
     ),
@@ -75,7 +75,7 @@ const interviewReportSchema = z.object({
           ),
       }),
     )
-    .min(5)
+    .min(7)
     .describe(
       "A list of skill gaps that the candidate has, along with the severity of each skill gap (Low, Medium or High).",
     ),
@@ -90,7 +90,7 @@ const interviewReportSchema = z.object({
         focus: z.string().describe("The focus of the preparation on that day"),
       }),
     )
-    .min(5)
+    .min(7)
     .describe(
       "A preparation plan for the candidate to improve their skills and prepare for the interview, with tasks and focus for each day.",
     ),

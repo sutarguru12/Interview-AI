@@ -4,6 +4,16 @@ const jwt = require("jsonwebtoken");
 const tokenBlacklistModel = require("../models/blacklist.model");
 const { OAuth2Client } = require("google-auth-library");
 
+const isProd = process.env.NODE_ENV === "production";
+
+const cookieOption = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: isProd ? "none" : "lax",
+};
+
+const cookieMaxAge = 24 * 60 * 60 * 1000;
+
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 /**
  * @name registerUserController
@@ -11,56 +21,61 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
  * @access public
  */
 async function registerUserController(req, res) {
-  const { username, email, password } = req.body;
+  try {
+    const { username, email, password } = req.body;
 
-  if (!username || !email || !password) {
-    return res
-      .status(400)
-      .json({ message: "Please provide name, email and password" });
-  }
-
-  const isUserExists = await userModel.findOne({
-    $or: [{ email }, { username }],
-  });
-
-  if (isUserExists) {
-    if (isUserExists.username == username) {
-      return res.status(400).json({ message: "Username already exists" });
+    if (!username || !email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Please provide name, email and password" });
     }
 
-    if (isUserExists.email == email) {
-      return res.status(400).json({ message: "Email already exists" });
+    const isUserExists = await userModel.findOne({
+      $or: [{ email }, { username }],
+    });
+
+    if (isUserExists) {
+      if (isUserExists.username == username) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      if (isUserExists.email == email) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
     }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    const user = await userModel.create({
+      username,
+      email,
+      password: hash,
+    });
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        name: user.username,
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" },
+    );
+
+    res.cookie("token", token, { ...cookieOption, maxAge: cookieMaxAge });
+
+    return res.status(201).json({
+      message: "User created successfully",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
   }
-
-  const hash = await bcrypt.hash(password, 10);
-
-  const user = await userModel.create({
-    username,
-    email,
-    password: hash,
-  });
-
-  const token = jwt.sign(
-    {
-      id: user._id,
-      name: user.username,
-      email: user.email,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" },
-  );
-
-  res.cookie("token", token);
-
-  return res.status(201).json({
-    message: "User created successfully",
-    user: {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-    },
-  });
 }
 
 /**
@@ -72,9 +87,13 @@ async function registerUserController(req, res) {
 async function loginUserController(req, res) {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({ message: "Please provide email & password" });
+  }
+
   const user = await userModel.findOne({ email });
 
-  if (!user) {
+  if (!user || !user.password) {
     return res.status(400).json({ message: "invalid credentials." });
   }
 
@@ -94,7 +113,7 @@ async function loginUserController(req, res) {
     { expiresIn: "1d" },
   );
 
-  res.cookie("token", token);
+  res.cookie("token", token, { ...cookieOption, maxAge: cookieMaxAge });
 
   return res.status(200).json({
     message: "Logged in succesfully",
@@ -112,7 +131,7 @@ async function googleLoginControler(req, res) {
     const { credential } = req.body;
 
     if (!credential) {
-      return res.status(400).json({ mesage: "Google Credentials required" });
+      return res.status(400).json({ message: "Google Credentials required" });
     }
 
     const ticket = await googleClient.verifyIdToken({
@@ -162,7 +181,7 @@ async function googleLoginControler(req, res) {
       { expiresIn: "1d" },
     );
 
-    res.cookie("token", token);
+    res.cookie("token", token, { ...cookieOption, maxAge: cookieMaxAge });
 
     return res.status(200).json({
       message: "Google login successful",
@@ -188,7 +207,7 @@ async function logoutUserController(req, res) {
     });
   }
 
-  res.clearCookie("token");
+  res.clearCookie("token", cookieOption);
 
   return res.status(200).json({ message: "User logout successfully" });
 }
@@ -199,12 +218,21 @@ async function logoutUserController(req, res) {
  * @access public
  */
 async function authGetMeController(req, res) {
-  const user = await userModel.findById(req.user.id);
+  try {
+    const user = await userModel.findById(req.user.id);
 
-  res.status(200).json({
-    message: "user details fetched successfully",
-    user: { id: user._id, name: user.username, email: user.email },
-  });
+    if (!user) {
+      return res.status(404).json({ message: "user not found" });
+    }
+
+    res.status(200).json({
+      message: "user details fetched successfully",
+      user: { id: user._id, name: user.username, email: user.email },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
 }
 
 module.exports = {

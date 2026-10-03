@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000",
   withCredentials: true,
 });
 
@@ -11,9 +11,10 @@ api.interceptors.response.use(
   },
 
   (error) => {
-    if (error.response?.status == 429) {
+    if (error.response?.status === 429) {
       console.log(
-        error.response?.message || "Too many requests, Please try again later",
+        error.response?.data?.message ||
+          "Too many requests, Please try again later",
       );
     }
     return Promise.reject(error);
@@ -62,7 +63,7 @@ export const googleLogin = async (credential) => {
 
 export async function logout({ token }) {
   try {
-    const response = await api.post("/api/auth/logout", { token });
+    const response = await api.post("/api/auth/logout");
 
     return response.data;
   } catch (err) {
